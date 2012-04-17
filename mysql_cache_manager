@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'pp'
+require 'getoptlong'
+require 'ostruct'
+require 'mysql_cache_manager'
+
+def usage(exit_code, message = nil)
+  print "Error: #{message}\n\n" unless message.nil?
+
+  print <<'END_OF_USAGE'
+mysql_cache_manager [options] <save file>
+
+END_OF_USAGE
+
+  exit exit_code
+end
+
+@options = OpenStruct.new
+@options.verbose            = false
+@options.mode               = nil
+@options.mode_options       = 0
+@options.mysql_host         = "localhost"
+@options.mysql_user         = nil
+@options.mysql_password     = nil
+@options.batch_size         = 1000
+
+getopt = GetoptLong.new(
+  [ "--help",             "-?",     GetoptLong::NO_ARGUMENT ],
+  [ "--verbose",          "-v",     GetoptLong::NO_ARGUMENT ],
+  [ "--save",             "-s",     GetoptLong::NO_ARGUMENT ],
+  [ "--restore",          "-r",     GetoptLong::NO_ARGUMENT ],
+  [ "--mysql-host",       "-h",     GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--mysql-user",       "-u",     GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--mysql-password",   "-p",     GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--batch-size",       "-b",     GetoptLong::REQUIRED_ARGUMENT ]
+)
+
+getopt.each do |opt, arg|
+  case opt
+    when "--help"
+      usage 0
+    when "--verbose"
+      @options.verbose = true
+    when "--save"
+      @options.mode_options += 1
+      @options.mode = :save
+    when "--restore"
+      @options.mode_options += 1
+      @options.mode = :restore
+    when "--mysql-host"
+      @options.mysql_host = arg
+    when "--mysql-user"
+      @options.mysql_user = arg
+    when "--mysql-password"
+      @options.mysql_password = arg
+    when "--batch-size"
+      @options.batch_size = arg.to_i
+  end
+end
+
+if @options.mode.nil? or @options.mode_options != 1
+  usage 1, "Exactly one mode (--save, --restore) must be specified"
+end
+
+if ARGV.size != 1
+  usage 1, "A save file name must be provided"
+end
+
+def log(message)
+  if @options.verbose
+    time = Time.now.strftime("%F %T ")
+    puts time + message
+  end
+end
+
+@options.save_file = ARGV.shift
+
+cache_manager = MysqlCacheManager.new(
+  @options.mysql_host,
+  @options.mysql_user,
+  @options.mysql_password
+)
+
+case @options.mode
+  when :save
+    cache_manager.save_cache(@options.save_file)
+  when :restore
+    log "Starting restore from %s" % [@options.save_file]
+    cache_manager.restore_cache(@options.save_file, @options.batch_size) do
+      |mysql, pages_fetched, pages_attempted|
+      status = cache_manager.innodb_buffer_pool.status
+      data_percent = 100.0 * (status["data"].to_f / status["total"].to_f)
+      log "Fetched %i pages; %0.2f%% data\n" % [
+        pages_fetched,
+        data_percent,
+      ]
+    end
+    log "Finished restore from %s" % [@options.save_file]
+end
