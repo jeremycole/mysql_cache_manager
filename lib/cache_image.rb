@@ -83,4 +83,38 @@ class CacheImage
     
     pages
   end
+
+  def each_page_batch(batch_size)
+    unless block_given?
+      return Enumerable::Enumerator.new(self, :each_page_batch, batch_size)
+    end
+
+    pages = 0
+    batch_space = nil
+    batch_pages = []
+    @db.execute("SELECT space, page_number FROM pages ORDER BY space, page_number") do |row|
+      pages += 1
+
+      if batch_pages.size >= batch_size
+        yield batch_space, batch_pages
+        batch_pages = []
+      end
+
+      if batch_space == row[0]
+        batch_pages << row[1]
+      else
+        unless batch_pages.empty?
+          yield batch_space, batch_pages
+        end
+        batch_space = row[0]
+        batch_pages = [row[1]]
+      end
+    end
+
+    unless batch_pages.empty?
+      yield batch_space, batch_pages
+    end
+
+    pages
+  end
 end

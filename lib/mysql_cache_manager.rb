@@ -60,22 +60,12 @@ class MysqlCacheManager
       @image = CacheImage.new(filename, false)
     end
 
-    pages_by_space = nil
     pages_attempted = 0
     pages_fetched = 0
-    @image.each_page.each_slice(batch_size) do |page_batch|
-      track_timing("sort") do
-        pages_by_space = page_batch.inject({}) do |result, space_page|
-          (result[space_page[0]] ||= []) << space_page[1]
-          result
-        end
-      end
-
+    @image.each_page_batch(batch_size) do |space, page_batch|
       track_timing("fetch") do
-        pages_by_space.each do |space, page_list|
-          pages_attempted += page_list.size
-          pages_fetched += @innodb_buffer_pool.fetch_page(space, page_list)
-        end
+        pages_attempted += page_batch.size
+        pages_fetched += @innodb_buffer_pool.fetch_page(space, page_batch)
       end
 
       if block_given?
