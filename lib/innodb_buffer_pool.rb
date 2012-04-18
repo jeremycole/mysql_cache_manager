@@ -1,7 +1,7 @@
 class InnodbBufferPool
   QUERY_STATUS = <<-EOQ
     SELECT * FROM information_schema.global_status
-    WHERE variable_name LIKE 'INNODB\\_BUFFER\\_POOL\\_PAGES\\_%'
+    WHERE variable_name LIKE 'INNODB\\_%'
   EOQ
 
   QUERY_PAGES = <<-EOQ
@@ -18,7 +18,7 @@ class InnodbBufferPool
     status_result = @mysql.query(QUERY_STATUS)
     status_vars = {}
     status_result.each_hash do |row|
-      var = row['VARIABLE_NAME'].sub("INNODB_BUFFER_POOL_PAGES_", "").downcase
+      var = row['VARIABLE_NAME'].sub("INNODB_", "").downcase
       status_vars[var] = row['VARIABLE_VALUE'].to_i
     end
     status_vars
@@ -43,7 +43,7 @@ class InnodbBufferPool
     unless pages.is_a? Array
       pages = [pages]
     end
-    fetch_query = "SELECT engine_control(InnoDB, prefetch_pages, #{space}, #{pages.join(',')}) AS status"
+    fetch_query = "SELECT engine_control(innodb, prefetch_pages, #{space}, #{pages.join(',')}) AS status"
     #puts "Query: #{fetch_query}"
     # SELECT ENGINE_CONTROL(InnoDB, prefetch_pages, 0, 1);
     if result = @mysql.query(fetch_query)

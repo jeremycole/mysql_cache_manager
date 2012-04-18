@@ -33,8 +33,6 @@ class CacheImage
         raise "File not found: #{filename}"
       end
     end
-
-    @db.results_as_hash = true
   end
 
   def empty!
@@ -47,13 +45,13 @@ class CacheImage
     @insert_metadata.execute(k, v)
   end
 
-  def get_metadata
-    metadata = {}
+  def metadata
+    image_metadata = {}
     @db.execute("SELECT k, v FROM metadata ORDER BY k") do |row|
-      metadata[k] = v
+      image_metadata[row[0]] = row[1]
     end
 
-    metadata
+    image_metadata
   end
 
   def save_pages(page_iterator)
@@ -80,7 +78,7 @@ class CacheImage
     pages = 0
     @db.execute("SELECT space, page_number FROM pages ORDER BY space, page_number") do |row|
       pages += 1
-      yield row["space"], row["page_number"]
+      yield row[0], row[1]
     end
     
     pages

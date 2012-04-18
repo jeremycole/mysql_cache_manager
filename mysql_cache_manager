@@ -75,6 +75,61 @@ def log(message)
   end
 end
 
+def save(cache_manager)
+  cache_manager.save_cache(@options.save_file)
+end
+
+def restore(cache_manager)
+  status_start = cache_manager.innodb_buffer_pool.status
+  time_start = Time.now.to_f
+  log "Starting restore from %s" % [@options.save_file]
+  total_pages_fetched = cache_manager.restore_cache(@options.save_file, @options.batch_size) do
+    |mysql, pages_fetched, pages_attempted|
+    log "Fetched %i pages\n" % [
+      pages_fetched,
+    ]
+  end
+  status_finish = cache_manager.innodb_buffer_pool.status
+  time_finish = Time.now.to_f
+  time_delta = (time_finish - time_start)
+
+  log "Finished restore from %s in %0.2f seconds" % [
+    @options.save_file,
+    time_delta,
+  ]
+
+  puts
+  puts "Statistics:"
+  puts "  Run time (s):             %10.2f" % [time_delta]
+  puts "  Fetch time (s):           %10.2f" % [cache_manager.timing["fetch"]]
+  puts "  Fetch speed (pages/s):    %10.2f" % [
+    total_pages_fetched / time_delta
+  ]
+  data_read_delta = (status_finish["data_read"] - status_start["data_read"])
+  puts "  Data read (GB):           %10.2f" % [
+    data_read_delta / (1024**3)
+  ]
+  puts "  Data read (MB/s):         %10.2f" % [
+    data_read_delta / (1024**2) / time_delta
+  ]
+  puts "  Buffer pool data start:   %10.2f%%" % [
+    100.0 * (status_start["buffer_pool_pages_data"].to_f /
+              status_start["buffer_pool_pages_total"].to_f)
+  ]
+  puts "  Buffer pool data finish:  %10.2f%%" % [
+    100.0 * (status_finish["buffer_pool_pages_data"].to_f /
+              status_finish["buffer_pool_pages_total"].to_f)
+  ]
+  puts "  Buffer pool restored:     %10.2f%%" % [
+    100.0 * (status_finish["buffer_pool_pages_data"].to_f /
+              cache_manager.image.metadata["buffer_pool_pages_data"].to_f)
+  ]
+  puts "  Timings (s):"
+  cache_manager.timing.each do |metric, time|
+    puts "    %-10s: %10.2f" % [metric, time]
+  end
+end
+
 @options.save_file = ARGV.shift
 
 cache_manager = MysqlCacheManager.new(
@@ -85,17 +140,7 @@ cache_manager = MysqlCacheManager.new(
 
 case @options.mode
   when :save
-    cache_manager.save_cache(@options.save_file)
+    save(cache_manager)
   when :restore
-    log "Starting restore from %s" % [@options.save_file]
-    cache_manager.restore_cache(@options.save_file, @options.batch_size) do
-      |mysql, pages_fetched, pages_attempted|
-      status = cache_manager.innodb_buffer_pool.status
-      data_percent = 100.0 * (status["data"].to_f / status["total"].to_f)
-      log "Fetched %i pages; %0.2f%% data\n" % [
-        pages_fetched,
-        data_percent,
-      ]
-    end
-    log "Finished restore from %s" % [@options.save_file]
+    restore(cache_manager)
 end
