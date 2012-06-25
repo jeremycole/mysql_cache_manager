@@ -33,6 +33,9 @@ class InnodbBufferPool
     pages_result = @mysql.query(QUERY_PAGES)
     pages_result.each_hash do |row|
       pages += 1
+      if 0 == (pages % 1000)
+        puts "Fetched #{pages} pages so far..."
+      end
       yield row["space"].to_i, row["page_number"].to_i
     end
     
@@ -43,12 +46,10 @@ class InnodbBufferPool
     unless pages.is_a? Array
       pages = [pages]
     end
-    fetch_query = "SELECT engine_control(innodb, prefetch_pages, #{space}, #{pages.join(',')}) AS status"
-    #puts "Query: #{fetch_query}"
-    # SELECT ENGINE_CONTROL(InnoDB, prefetch_pages, 0, 1);
+    fetch_query = "SELECT engine_control(innodb, prefetch_pages, #{space}, #{pages.join(',')}) AS pages_fetched"
     if result = @mysql.query(fetch_query)
       if status_row = result.fetch_hash
-        return status_row["status"].to_i
+        return status_row["pages_fetched"].to_i
       end
     end
     nil

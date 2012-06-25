@@ -33,6 +33,10 @@ class CacheImage
         raise "File not found: #{filename}"
       end
     end
+
+    @db.cache_size = 200000
+    @db.synchronous = "off"
+    @db.temp_store = "memory"
   end
 
   def empty!
@@ -70,49 +74,50 @@ class CacheImage
     @insert_page.execute(space, page_number)
   end
 
-  def each_page
+  def each_space
     unless block_given?
-      return Enumerable::Enumerator.new(self, :each_page)
+      return Enumerable::Enumerator.new(self, :each_space)
+    end
+
+    spaces = 0
+    @db.execute("SELECT DISTINCT space FROM pages ORDER BY space") do |row|
+      spaces += 1
+      yield row[0]
+    end
+    
+    spaces
+  end
+
+  def each_page(space)
+    unless block_given?
+      return Enumerable::Enumerator.new(self, :each_page, space)
     end
 
     pages = 0
-    @db.execute("SELECT space, page_number FROM pages ORDER BY space, page_number") do |row|
+    @db.execute("SELECT page_number FROM pages WHERE space = #{space} ORDER BY page_number") do |row|
       pages += 1
-      yield row[0], row[1]
+      yield row[0]
     end
-    
+
     pages
   end
 
-  def each_page_batch(batch_size)
+  def each_page_batch(space, batch_size)
     unless block_given?
-      return Enumerable::Enumerator.new(self, :each_page_batch, batch_size)
+      return Enumerable::Enumerator.new(self, :each_page_batch, space, batch_size)
     end
 
-    pages = 0
-    batch_space = nil
-    batch_pages = []
-    @db.execute("SELECT space, page_number FROM pages ORDER BY space, page_number") do |row|
-      pages += 1
-
+    batch_pages = Array.new
+    pages = each_page(space) do |page_number|
+      batch_pages << page_number
       if batch_pages.size >= batch_size
-        yield batch_space, batch_pages
-        batch_pages = []
-      end
-
-      if batch_space == row[0]
-        batch_pages << row[1]
-      else
-        unless batch_pages.empty?
-          yield batch_space, batch_pages
-        end
-        batch_space = row[0]
-        batch_pages = [row[1]]
+        yield batch_pages
+        batch_pages.clear
       end
     end
 
     unless batch_pages.empty?
-      yield batch_space, batch_pages
+      yield batch_pages
     end
 
     pages
