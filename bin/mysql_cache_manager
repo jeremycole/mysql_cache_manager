@@ -132,7 +132,7 @@ end
 
 @options.save_file = ARGV.shift
 
-cache_manager = MysqlCacheManager.new(
+cache_manager = MysqlCacheManager::CacheManager.new(
   @options.mysql_host,
   @options.mysql_user,
   @options.mysql_password
