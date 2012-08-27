@@ -70,7 +70,7 @@ module MysqlCacheManager
     end
 
     def save_page(space, page_number)
-      @insert_page ||= @db.prepare("INSERT INTO pages (space, page_number) VALUES (?, ?)")
+      @insert_page ||= @db.prepare("INSERT OR IGNORE INTO pages (space, page_number) VALUES (?, ?)")
 
       @insert_page.execute(space, page_number)
     end
