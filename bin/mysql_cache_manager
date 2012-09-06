@@ -10,6 +10,9 @@ def usage(exit_code, message = nil)
   print "Error: #{message}\n\n" unless message.nil?
 
   print <<'END_OF_USAGE'
+
+Usage:
+
 mysql_cache_manager [options] <save file>
 
 END_OF_USAGE
@@ -21,6 +24,7 @@ end
 @options.verbose            = false
 @options.mode               = nil
 @options.mode_options       = 0
+@options.image_format       = "sqlite3"
 @options.mysql_host         = "localhost"
 @options.mysql_user         = nil
 @options.mysql_password     = nil
@@ -31,6 +35,7 @@ getopt = GetoptLong.new(
   [ "--verbose",          "-v",     GetoptLong::NO_ARGUMENT ],
   [ "--save",             "-s",     GetoptLong::NO_ARGUMENT ],
   [ "--restore",          "-r",     GetoptLong::NO_ARGUMENT ],
+  [ "--image-format",     "-i",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--mysql-host",       "-h",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--mysql-user",       "-u",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--mysql-password",   "-p",     GetoptLong::REQUIRED_ARGUMENT ],
@@ -49,6 +54,8 @@ getopt.each do |opt, arg|
     when "--restore"
       @options.mode_options += 1
       @options.mode = :restore
+    when "--image-format"
+      @options.image_format = arg
     when "--mysql-host"
       @options.mysql_host = arg
     when "--mysql-user"
@@ -132,7 +139,21 @@ end
 
 @options.save_file = ARGV.shift
 
+image_format_names = MysqlCacheManager::CacheImage.constants.select do |c|
+  c.downcase == @options.image_format.downcase
+end
+
+if image_format_names.empty?
+  usage 1, "Unable to find cache image class '%s'; valid classes are: %s" % [
+    @options.image_format,
+    MysqlCacheManager::CacheImage.constants.join(", "),
+  ]
+end
+
+cache_image_class = MysqlCacheManager::CacheImage.const_get(image_format_names.first)
+
 cache_manager = MysqlCacheManager::CacheManager.new(
+  cache_image_class,
   @options.mysql_host,
   @options.mysql_user,
   @options.mysql_password

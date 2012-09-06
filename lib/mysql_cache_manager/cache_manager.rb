@@ -11,7 +11,8 @@ module MysqlCacheManager
 
     attr_accessor :mysql, :innodb_buffer_pool, :image, :timing
 
-    def initialize(host, user, password)
+    def initialize(image_class, host, user, password)
+      @cache_image_class = image_class
       @mysql_host = host
       @mysql_user = user
       @mysql_password = password
@@ -37,7 +38,7 @@ module MysqlCacheManager
 
     def save_cache(filename)
       track_timing("open") do
-        @image = CacheImage.new(filename, true)
+        @image = @cache_image_class.new(filename, true)
         @image.empty!
       end
 
@@ -56,7 +57,7 @@ module MysqlCacheManager
 
     def restore_cache(filename, batch_size=100)
       track_timing("open") do
-        @image = CacheImage.new(filename, false)
+        @image = @cache_image_class.new(filename, false)
       end
 
       pages_attempted = 0
