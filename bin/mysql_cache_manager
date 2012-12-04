@@ -13,7 +13,40 @@ def usage(exit_code, message = nil)
 
 Usage:
 
-mysql_cache_manager [options] <save file>
+mysql_cache_manager (--save|--restore) [options] <save file>
+
+Arguments:
+
+--save
+  Perform a dump and save of the buffer pool cache to the specified file.  
+  Cannot be used in conjunction with --restore.
+
+--restore
+  Perform a reload of the buffer pool cache from the specified file.
+  Cannot be used in conjunction with --save
+
+Options:
+
+  --help | -?
+    Print this message.
+
+  --verbose
+    Print verbose messages.
+
+  --image-format
+    Specify the storage backend to use for the cache image.  Currently, only sqlite3 is supported.
+
+  --mysql-host
+    Remote host for mysql connection.
+    
+  --mysql-user
+    User for mysql connection.
+
+  --mysql-password
+    Password for mysql connection.
+
+  --batch-size
+    Specifies the size of each "chunk" of pages to be dumped.
 
 END_OF_USAGE
 
