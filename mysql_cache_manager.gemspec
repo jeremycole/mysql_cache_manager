@@ -1,6 +1,10 @@
+lib = File.expand_path('../lib/', __FILE__)
+$:.unshift lib unless $:.include?(lib)
+require "mysql_cache_manager/version"
+
 Gem::Specification.new do |s|
   s.name        = 'mysql_cache_manager'
-  s.version     = File.open("VERSION").readline.chomp
+  s.version     = MysqlCacheManager::VERSION
   s.date        = Time.now.strftime("%Y-%m-%d")
   s.summary     = 'MySQL Cache Manager'
   s.description = 'A tool for saving and restoring the InnoDB buffer pool using the information_schema.buffer_page table and engine_control(InnoDB, prefetch_pages, ...) function.'
