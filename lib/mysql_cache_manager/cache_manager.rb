@@ -53,6 +53,10 @@ module MysqlCacheManager
       track_timing("save") do
         @image.save_pages(@innodb_buffer_pool.each_page)
       end
+      
+      track_timing("index") do
+        @image.add_index
+      end
     end
 
     def restore_cache(filename, batch_size=100)
