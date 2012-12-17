@@ -123,6 +123,10 @@ module MysqlCacheManager
 
         pages
       end
+
+      def add_index
+        @db.execute("CREATE INDEX space_page_number ON pages (space, page_number)")
+      end
     end
   end
 end
