@@ -11,11 +11,12 @@ module MysqlCacheManager
 
     attr_accessor :mysql, :innodb_buffer_pool, :image, :timing
 
-    def initialize(image_class, host, user, password)
+    def initialize(image_class, host, user, password, port)
       @cache_image_class = image_class
       @mysql_host = host
       @mysql_user = user
       @mysql_password = password
+      @mysql_port = port
       @image = nil
       @timing = Hash.new(0.0)
 
@@ -32,7 +33,7 @@ module MysqlCacheManager
     end
 
     def connect
-      @mysql = Mysql.new(@mysql_host, @mysql_user, @mysql_password)
+      @mysql = Mysql.new(@mysql_host, @mysql_user, @mysql_password, nil, @mysql_port)
       @innodb_buffer_pool = InnodbBufferPool.new(@mysql)
     end
 

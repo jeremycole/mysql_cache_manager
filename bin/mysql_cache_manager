@@ -45,6 +45,9 @@ Options:
   --mysql-password
     Password for mysql connection.
 
+  --mysql-port
+    Port for mysql connection.
+
   --batch-size
     Specifies the size of each "chunk" of pages to be dumped.
 
@@ -61,6 +64,7 @@ end
 @options.mysql_host         = "localhost"
 @options.mysql_user         = nil
 @options.mysql_password     = nil
+@options.mysql_port         = 3306
 @options.batch_size         = 1000
 
 getopt = GetoptLong.new(
@@ -72,6 +76,7 @@ getopt = GetoptLong.new(
   [ "--mysql-host",       "-h",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--mysql-user",       "-u",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--mysql-password",   "-p",     GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--mysql-port",       "-P",     GetoptLong::REQUIRED_ARGUMENT ],
   [ "--batch-size",       "-b",     GetoptLong::REQUIRED_ARGUMENT ]
 )
 
@@ -95,6 +100,8 @@ getopt.each do |opt, arg|
       @options.mysql_user = arg
     when "--mysql-password"
       @options.mysql_password = arg
+    when "--mysql-port"
+      @options.mysql_port = arg.to_i
     when "--batch-size"
       @options.batch_size = arg.to_i
   end
@@ -189,7 +196,8 @@ cache_manager = MysqlCacheManager::CacheManager.new(
   cache_image_class,
   @options.mysql_host,
   @options.mysql_user,
-  @options.mysql_password
+  @options.mysql_password,
+  @options.mysql_port
 )
 
 case @options.mode
