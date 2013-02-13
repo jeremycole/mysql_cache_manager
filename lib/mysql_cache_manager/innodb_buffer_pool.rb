@@ -36,12 +36,8 @@ module MysqlCacheManager
       end
 
       # Determine if the current server supports the "new" dump method
-      @mysql.select_db('INFORMATION_SCHEMA')
-
-      @mysql.list_tables.each do |table|
-        if table == "INNODB_BUFFER_PAGE_BASIC"
-          QUERY_PAGES = QUERY_PAGES_FAST
-        end
+      unless @mysql.query("SHOW TABLES FROM information_schema LIKE 'innodb_buffer_page_basic'").fetch_hash.nil?
+        QUERY_PAGES = QUERY_PAGES_FAST
       end
 
       pages = 0
