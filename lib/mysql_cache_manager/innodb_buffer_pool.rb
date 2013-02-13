@@ -35,13 +35,14 @@ module MysqlCacheManager
         return Enumerable::Enumerator.new(self, :each_page)
       end
 
+      query_pages = QUERY_PAGES
       # Determine if the current server supports the "new" dump method
       unless @mysql.query("SHOW TABLES FROM information_schema LIKE 'innodb_buffer_page_basic'").fetch_hash.nil?
-        QUERY_PAGES = QUERY_PAGES_FAST
+        query_pages = QUERY_PAGES_FAST
       end
 
       pages = 0
-      pages_result = @mysql.query(QUERY_PAGES)
+      pages_result = @mysql.query(query_pages)
       pages_result.each_hash do |row|
         pages += 1
         if 0 == (pages % 1000)
