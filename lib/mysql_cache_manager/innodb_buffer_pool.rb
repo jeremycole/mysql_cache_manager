@@ -11,6 +11,11 @@ module MysqlCacheManager
       WHERE page_type IN ("INDEX")
     EOQ
 
+    QUERY_PAGES_FAST = <<-EOQ
+      SELECT space, page_number
+      FROM information_schema.innodb_buffer_page_basic
+    EOQ
+
     def initialize(mysql)
       @mysql = mysql
     end
@@ -28,6 +33,15 @@ module MysqlCacheManager
     def each_page
       unless block_given?
         return Enumerable::Enumerator.new(self, :each_page)
+      end
+
+      # Determine if the current server supports the "new" dump method
+      @mysql.select_db('INFORMATION_SCHEMA')
+
+      @mysql.list_tables.each do |table|
+        if table == "INNODB_BUFFER_PAGE_BASIC"
+          QUERY_PAGES = QUERY_PAGES_FAST
+        end
       end
 
       pages = 0
