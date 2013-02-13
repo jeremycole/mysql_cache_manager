@@ -22,4 +22,5 @@ Gem::Specification.new do |s|
   s.executables = [
     'mysql_cache_manager',
   ]
+  s.add_dependency('inifile', '>=2.0.2')
 end

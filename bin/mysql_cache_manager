@@ -4,6 +4,7 @@ require 'rubygems'
 require 'pp'
 require 'getoptlong'
 require 'ostruct'
+require 'inifile'
 require 'mysql_cache_manager'
 
 def usage(exit_code, message = nil)
@@ -66,6 +67,18 @@ end
 @options.mysql_password     = nil
 @options.mysql_port         = 3306
 @options.batch_size         = 1000
+
+# Parse local .my.cnf if present
+if File.exists?(File.expand_path("~/.my.cnf"))
+  my_cnf = IniFile.load(File.expand_path("~/.my.cnf"))
+  section = my_cnf['client']
+  unless section['user'].nil?
+    @options.user = section['user']
+  end
+  unless section['password'].nil?
+    @options.password = section['password']
+  end
+end
 
 getopt = GetoptLong.new(
   [ "--help",             "-?",     GetoptLong::NO_ARGUMENT ],
