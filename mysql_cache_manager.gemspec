@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
     'lib/mysql_cache_manager/cache_manager.rb',
     'lib/mysql_cache_manager/cache_image.rb',
     'lib/mysql_cache_manager/cache_image/sqlite3.rb',
+    'lib/mysql_cache_manager/cache_image/pstore.rb',
     'lib/mysql_cache_manager/innodb_buffer_pool.rb',
     'lib/mysql_cache_manager/version.rb',
   ]
