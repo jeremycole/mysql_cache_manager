@@ -59,11 +59,11 @@ module MysqlCacheManager
         unless block_given?
           return Enumerable::Enumerator.new(self, :each_space)
         end
-
-        @sotre[:pages].keys.sort.each do |space|
-          yield space
+        @store.transaction do
+          @store[:pages].keys.sort.each do |space|
+            yield space
+          end
         end
-
         @store[:pages].length
       end
 
