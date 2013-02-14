@@ -35,11 +35,11 @@ Options:
     Print verbose messages.
 
   --image-format
-    Specify the storage backend to use for the cache image.  Currently, only sqlite3 is supported.
+    Specify the storage backend to use for the cache image.  Currently, only sqlite3 and pstore are supported.
 
   --mysql-host
     Remote host for mysql connection.
-    
+
   --mysql-user
     User for mysql connection.
 
@@ -73,10 +73,10 @@ if File.exists?(File.expand_path("~/.my.cnf"))
   my_cnf = IniFile.load(File.expand_path("~/.my.cnf"))
   section = my_cnf['client']
   unless section['user'].nil?
-    @options.user = section['user']
+    @options.mysql_user = section['user']
   end
   unless section['password'].nil?
-    @options.password = section['password']
+    @options.mysql_password = section['password']
   end
 end
 
