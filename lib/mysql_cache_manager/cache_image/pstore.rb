@@ -37,7 +37,7 @@ module MysqlCacheManager
 
       def metadata
         @store.transaction do
-          @store[:metadata]
+          return @store[:metadata]
         end
       end
 
