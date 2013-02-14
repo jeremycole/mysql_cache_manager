@@ -37,7 +37,7 @@ module MysqlCacheManager
 
       query_pages = QUERY_PAGES
       # Determine if the current server supports the "new" dump method
-      unless @mysql.query("SHOW TABLES FROM information_schema LIKE 'innodb_buffer_page_basic'").fetch_hash.nil?
+      unless @mysql.query("SHOW TABLES FROM information_schema LIKE 'INNODB_BUFFER_PAGE_BASIC'").fetch_hash.nil?
         query_pages = QUERY_PAGES_FAST
       end
 
