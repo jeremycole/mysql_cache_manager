@@ -36,7 +36,9 @@ module MysqlCacheManager
       end
 
       def metadata
-        @store[:metadata]
+        @store.transaction do
+          @store[:metadata]
+        end
       end
 
       def save_pages(page_iterator)
@@ -46,7 +48,6 @@ module MysqlCacheManager
             save_page(*page)
           end
         end
-
         pages
       end
 
@@ -71,11 +72,9 @@ module MysqlCacheManager
         unless block_given?
           return Enumerable::Enumerator.new(self, :each_page, space)
         end
-
         @store[:pages][space].sort.each do |page|
           yield page
         end
-
         @store[:pages][space].length
       end
 
