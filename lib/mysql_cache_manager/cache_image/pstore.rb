@@ -63,8 +63,8 @@ module MysqlCacheManager
           @store[:pages].keys.sort.each do |space|
             yield space
           end
+          return @store[:pages].length
         end
-        @store[:pages].length
       end
 
       def each_page(space)
