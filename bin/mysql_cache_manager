@@ -35,6 +35,7 @@ Options:
     Print verbose messages.
 
   --image-format
+    Default: pstore
     Specify the storage backend to use for the cache image.  Currently, only sqlite3 and pstore are supported.
 
   --mysql-host
@@ -61,7 +62,7 @@ end
 @options.verbose            = false
 @options.mode               = nil
 @options.mode_options       = 0
-@options.image_format       = "sqlite3"
+@options.image_format       = "pstore"
 @options.mysql_host         = "localhost"
 @options.mysql_user         = nil
 @options.mysql_password     = nil

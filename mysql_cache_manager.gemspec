@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.date        = Time.now.strftime("%Y-%m-%d")
   s.summary     = 'MySQL Cache Manager'
   s.description = 'A tool for saving and restoring the InnoDB buffer pool using the information_schema.buffer_page table and engine_control(InnoDB, prefetch_pages, ...) function.'
-  s.authors     = [ 'Jeremy Cole' ]
-  s.email       = 'jeremy@jcole.us'
+  s.authors     = [ 'Jeremy Cole', 'Will Gunty', 'Anton Kuraev' ]
+  s.email       = [ 'jeremy@jcole.us', 'wg@twitter.com', 'akuraev@twitter.com' ]
   s.homepage    = 'http://jcole.us/'
   s.files = [
     'lib/mysql_cache_manager.rb',
